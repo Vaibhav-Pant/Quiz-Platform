@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Quiz App
 
-## Getting Started
+A fully interactive quiz application built with Next.js, ShadCN UI, Tailwind CSS, and TypeScript. The app supports multiple-choice and integer-based questions, tracks quiz history using IndexedDB, and provides a detailed scoreboard.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
+- **Multiple Choice & Integer-Based Questions**
+- **Timer-Based Quiz** (30 seconds per question)
+- **Scoreboard & Attempt History**
+- **Quiz History Saved in IndexedDB**
+- **Clean & Responsive UI**
+- **Retake Quiz Option**
+
+## 🛠️ Installation & Running Locally
+
+### Prerequisites
+Ensure you have the following installed:
+- Node.js (>= 16.x)
+- npm or yarn
+
+### Clone the Repository
+```sh
+git clone https://github.com/yourusername/quiz-app.git
+cd quiz-app
+```
+
+### Install Dependencies
+```sh
+npm install
+# or
+yarn install
+```
+
+### Start the Development Server
+```sh
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+The app will be available at `http://localhost:3000`
+
+## 🌍 Deployed App
+You can access the live version of the app here:
+👉 [Live Demo](https://your-deployed-link.vercel.app)
+
+## 📂 Project Structure
+```
+/quiz-app
+├── /src/components
+│   ├── ui/ (Reusable UI Components)
+├── /src/app/
+│   ├── /page.tsx (Main Quiz Page)
+│   ├── /history/page.tsx (Quiz History Page)
+├── /src/utils/
+│   ├── indexedDB.ts/ (IndexedDB Storage Logic)
+├── /src/data.json (Quiz Questions Data)
+├── /public
+└── README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📝 Contributing
+Feel free to contribute! Fork the repo, create a new branch, and submit a PR. 🚀
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📄 License
+MIT License © 2025 Vaibhav Pant
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

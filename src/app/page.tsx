@@ -1,101 +1,215 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useState, useEffect } from "react";
+import { saveQuizHistory } from "@/utils/indexedDB";
+import Navbar from "@/components/ui/NavBar";
+import StartScreen from "@/components/ui/StartScreen";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import data from "@/data.json";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+const quizData = data;
+
+export default function QuizApp() {
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | number | null>(
+    null
+  );
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [quizFinished, setQuizFinished] = useState(false);
+  const [attempts, setAttempts] = useState<
+    { question: string; correct: boolean }[]
+  >([]);
+  const [inputValue, setInputValue] = useState<number | "">("");
+
+  useEffect(() => {
+    if (quizStarted && timeLeft === 0) {
+      handleNextQuestion();
+    }
+    const timer = setInterval(
+      () => setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0)),
+      1000
+    );
+    return () => clearInterval(timer);
+  }, [timeLeft, quizStarted]);
+
+  const handleAnswer = (answer: string | number) => {
+    if (selectedAnswer !== null) return;
+
+    setSelectedAnswer(answer);
+    const correct = quizData[currentQuestion].answer === answer;
+
+    if (correct) {
+      setScore((prev) => prev + 1);
+    }
+
+    setAttempts((prev) => [
+      ...prev,
+      { question: quizData[currentQuestion].question, correct },
+    ]);
+
+    setTimeout(() => handleNextQuestion(), 1000);
+  };
+
+  const handleNextQuestion = async () => {
+    setSelectedAnswer(null);
+    setInputValue("");
+    setTimeLeft(30);
+    if (currentQuestion < quizData.length - 1) {
+      setCurrentQuestion((prev) => prev + 1);
+    } else {
+      await saveQuizHistory({
+        date: new Date().toLocaleString(),
+        score: score,
+      });
+      setQuizFinished(true);
+    }
+  };
+
+  const restartQuiz = async () => {
+    setQuizStarted(false);
+    setCurrentQuestion(0);
+    setScore(0);
+    setSelectedAnswer(null);
+    setTimeLeft(30);
+    setQuizFinished(false);
+    setAttempts([]);
+    setInputValue("");
+  };
+
+  if (!quizStarted)
+    return (
+      <>
+        <Navbar />
+        <StartScreen onStart={() => setQuizStarted(true)} />;
+      </>
+    );
+
+  if (quizFinished) {
+    return (
+      <>
+        <Navbar />
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <Card className="w-[500px] text-center">
+            <CardHeader>
+              <h2 className="text-xl font-bold">🎉 Quiz Completed!</h2>
+            </CardHeader>
+            <CardContent>
+              <Badge className="text-lg mb-4 px-4 py-2">
+                {score} / {quizData.length}
+              </Badge>
+              <Separator className="mb-3" />
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Question</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {attempts.map((attempt, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{attempt.question}</TableCell>
+                      <TableCell>
+                        {attempt.correct ? "✅ Correct" : "❌ Incorrect"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Button className="mt-4" onClick={restartQuiz}>
+                Restart Quiz
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Navbar />
+      <div className="flex flex-col items-center justify-center h-screen space-y-4">
+        <Card className="w-[500px]">
+          <CardHeader>
+            <h2 className="text-lg font-bold">
+              Question {currentQuestion + 1} of {quizData.length}
+            </h2>
+          </CardHeader>
+          <CardContent>
+            <Progress
+              value={(currentQuestion / quizData.length) * 100}
+              className="mb-3"
+            />
+            <p className="text-gray-500 text-sm mb-2">
+              ⏳ Time left: {timeLeft}s
+            </p>
+            <p className="text-lg font-semibold">
+              {quizData[currentQuestion].question}
+            </p>
+
+            {quizData[currentQuestion].type === "mcq" ? (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                {quizData[currentQuestion].options?.map((option, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className={`w-full transition-colors ${
+                      selectedAnswer
+                        ? option === quizData[currentQuestion].answer
+                          ? "bg-green-500 text-white" // Correct answer stays green
+                          : selectedAnswer === option
+                          ? "bg-red-500 text-white" // Wrong answer stays red
+                          : "bg-gray-200" // Disable other options
+                        : "hover:bg-gray-300"
+                    } ${selectedAnswer ? "pointer-events-none" : ""}`}
+                    onClick={() => handleAnswer(option)}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col mt-3 space-y-3">
+                <input
+                  type="number"
+                  className="border p-2 rounded w-full"
+                  value={inputValue}
+                  onChange={(e) =>
+                    setInputValue(
+                      e.target.value ? parseInt(e.target.value) : ""
+                    )
+                  }
+                  placeholder="Enter your answer"
+                  required
+                />
+
+                <Button
+                  className="w-full disabled:bg-gray-400"
+                  onClick={() => handleAnswer(inputValue)}
+                  disabled={inputValue === ""} // Disable until input is valid
+                >
+                  Next Question
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }
