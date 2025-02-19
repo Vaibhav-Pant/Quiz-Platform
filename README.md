@@ -20,7 +20,7 @@ Ensure you have the following installed:
 
 ### Clone the Repository
 ```sh
-git clone https://github.com/yourusername/quiz-app.git
+git clone https://github.com/Vaibhav-Pant/Quiz-Platform.git
 cd quiz-app
 ```
 
@@ -41,7 +41,7 @@ The app will be available at `http://localhost:3000`
 
 ## 🌍 Deployed App
 You can access the live version of the app here:
-👉 [Live Demo](https://your-deployed-link.vercel.app)
+👉 [Live Demo](https://quiz-platform-navy.vercel.app/)
 
 ## 📂 Project Structure
 ```
